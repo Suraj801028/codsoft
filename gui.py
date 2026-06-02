@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import scrolledtext, messagebox
 from datetime import datetime
 
-
+# this is for gui basesd chatbot, the main logic is in main.py, this file is for the interface and interaction with the user. It uses the rules defined in rules.json to generate responses based on user input. The GUI is built using tkinter, providing a simple chat interface with a display area for messages and an input field for user queries.
 script_dir = os.path.dirname(os.path.abspath(__file__))
 rules_path = os.path.join(script_dir, "rules.json")
 
