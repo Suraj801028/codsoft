@@ -9,21 +9,19 @@ import cv2
 from PIL import Image, ImageTk
 import torch
 
-# Import project modules
 from model_downloader import download_all_models, MODELS_DIR
 from face_pipeline import FacePipeline
 import utils
 
-# Theme Palette (Modern Premium Dark Mode)
-BG_COLOR = "#121212"       # Dark charcoal background
-CARD_BG = "#1e1e1e"        # Light charcoal for panels/cards
-BORDER_COLOR = "#2d2d2d"   # Dark grey borders
-TEXT_COLOR = "#ffffff"     # White text
-MUTED_TEXT = "#888888"     # Medium grey for secondary labels
-ACCENT_COLOR = "#3498db"   # Electric flat blue
-ACCENT_HOVER = "#2980b9"   # Darker blue for hovers
-SUCCESS_COLOR = "#2ecc71"  # Flat emerald green
-DANGER_COLOR = "#e74c3c"   # Flat alizarin red
+BG_COLOR = "#121212"       
+CARD_BG = "#1e1e1e"        
+BORDER_COLOR = "#2d2d2d"   
+TEXT_COLOR = "#ffffff"     
+MUTED_TEXT = "#888888"    
+ACCENT_COLOR = "#3498db"   
+ACCENT_HOVER = "#2980b9"   
+SUCCESS_COLOR = "#2ecc71"  
+DANGER_COLOR = "#e74c3c"   
 
 
 class FaceApp:
@@ -33,7 +31,7 @@ class FaceApp:
         self.root.geometry("1150x780")
         self.root.configure(bg=BG_COLOR)
         
-        # Initialize variables
+
         self.pipeline = None
         self.webcam_active = False
         self.webcam_source = 0
@@ -42,17 +40,17 @@ class FaceApp:
         self.worker_thread = None
         self.cancel_video_proc = False
         
-        # Load custom styles
+
         self.setup_styles()
         
-        # Create Splash/Download screen first
+
         self.show_splash_screen()
         
     def setup_styles(self):
         self.style = ttk.Style()
         self.style.theme_use('clam')
         
-        # Configure overall style options
+            # Configure overall style options
         self.style.configure('.', background=BG_COLOR, foreground=TEXT_COLOR, font=('Segoe UI', 10))
         
         # Frames
@@ -97,7 +95,6 @@ class FaceApp:
         # Progress Bar
         self.style.configure('TProgressbar', background=ACCENT_COLOR, troughcolor=BORDER_COLOR, borderwidth=0)
 
-    # --- SPLASH & MODEL DOWNLOADING SCREEN ---
     def show_splash_screen(self):
         self.splash_frame = ttk.Frame(self.root)
         self.splash_frame.pack(expand=True, fill=tk.BOTH, padx=50, pady=50)
@@ -147,7 +144,7 @@ class FaceApp:
         self.root.after(0, lambda: self.status_lbl.configure(text=text))
         self.root.after(0, lambda: self.progress_bar.configure(value=percent))
 
-    # --- MAIN INTERFACE ---
+
     def load_main_ui(self):
         # Destroy splash screen
         self.splash_frame.destroy()
@@ -188,29 +185,29 @@ class FaceApp:
                                   activeforeground=TEXT_COLOR, command=self.on_source_change)
         src_file.pack(anchor='w', pady=2)
         
-        # Model Configuration Card
+
         model_card = ttk.Frame(sidebar, style='Card.TFrame', padding=10)
         model_card.pack(fill=tk.X, pady=(0, 15))
         ttk.Label(model_card, text="MODEL CONFIGURATION", style='Card.TLabel', font=('Segoe UI', 9, 'bold')).pack(anchor='w', pady=(0, 8))
         
-        # Face Detector
+
         ttk.Label(model_card, text="Face Detector:", style='CardSub.TLabel').pack(anchor='w')
         self.detector_cb = ttk.Combobox(model_card, values=["SSD DNN", "YuNet", "Haar Cascade"], state="readonly")
         self.detector_cb.current(0)
         self.detector_cb.pack(fill=tk.X, pady=(2, 8))
         
-        # Face Recognizer
+
         ttk.Label(model_card, text="Face Recognizer:", style='CardSub.TLabel').pack(anchor='w')
         self.recognizer_cb = ttk.Combobox(model_card, values=["SFace DNN", "PyTorch Siamese"], state="readonly")
         self.recognizer_cb.current(0)
         self.recognizer_cb.pack(fill=tk.X, pady=(2, 8))
         
-        # Thresholds Card
+
         thresh_card = ttk.Frame(sidebar, style='Card.TFrame', padding=10)
         thresh_card.pack(fill=tk.X, pady=(0, 15))
         ttk.Label(thresh_card, text="LATENCY & THRESHOLDS", style='Card.TLabel', font=('Segoe UI', 9, 'bold')).pack(anchor='w', pady=(0, 8))
         
-        # Detection Threshold
+
         ttk.Label(thresh_card, text="Detector Confidence:", style='CardSub.TLabel').pack(anchor='w')
         self.det_thresh_var = tk.DoubleVar(value=0.50)
         det_scale = tk.Scale(thresh_card, from_=0.1, to=1.0, resolution=0.05, orient=tk.HORIZONTAL,
@@ -218,7 +215,7 @@ class FaceApp:
                              troughcolor=BORDER_COLOR, activebackground=ACCENT_COLOR)
         det_scale.pack(fill=tk.X, pady=(2, 8))
         
-        # Recognition Threshold
+
         ttk.Label(thresh_card, text="Recognizer Match Limit:", style='CardSub.TLabel').pack(anchor='w')
         self.rec_thresh_var = tk.DoubleVar(value=0.40)
         self.rec_scale = tk.Scale(thresh_card, from_=0.0, to=1.0, resolution=0.05, orient=tk.HORIZONTAL,
@@ -226,31 +223,31 @@ class FaceApp:
                              troughcolor=BORDER_COLOR, activebackground=ACCENT_COLOR)
         self.rec_scale.pack(fill=tk.X, pady=2)
         
-        # Quick Threshold Helper text
+
         self.thresh_help = ttk.Label(thresh_card, text="Cosine Similarity Match: (Default: 0.40)", style='CardSub.TLabel')
         self.thresh_help.pack(anchor='w', pady=(4, 0))
         
         self.recognizer_cb.bind("<<ComboboxSelected>>", self.on_recognizer_select)
         
-        # Primary Action Panel
+
         self.action_card = ttk.Frame(sidebar, style='Card.TFrame', padding=10)
         self.action_card.pack(fill=tk.X, pady=(0, 15))
         ttk.Label(self.action_card, text="CONTROLS", style='Card.TLabel', font=('Segoe UI', 9, 'bold')).pack(anchor='w', pady=(0, 8))
         
-        # Feed Control Button (Start/Stop)
+
         self.feed_btn = ttk.Button(self.action_card, text="Start Webcam", style='Success.TButton', command=self.toggle_webcam)
         self.feed_btn.pack(fill=tk.X, pady=4)
         
-        # File selector (Webcam / File dependent)
+
         self.file_btn = ttk.Button(self.action_card, text="Load Image / Video", style='TButton', command=self.load_file)
         self.file_btn.pack(fill=tk.X, pady=4)
         self.file_btn.pack_forget() # Initially hidden since source is Webcam
         
-        # Snapshot capture button
+
         self.snap_btn = ttk.Button(self.action_card, text="Register User (Webcam)", style='Secondary.TButton', command=self.quick_register)
         self.snap_btn.pack(fill=tk.X, pady=4)
         
-        # Stats Card
+
         stats_card = ttk.Frame(sidebar, style='Card.TFrame', padding=10)
         stats_card.pack(fill=tk.BOTH, expand=True)
         ttk.Label(stats_card, text="PERFORMANCE METRICS", style='Card.TLabel', font=('Segoe UI', 9, 'bold')).pack(anchor='w', pady=(0, 8))
@@ -343,7 +340,7 @@ class FaceApp:
         
         self.populate_db_list()
 
-    # --- ACTION HANDLERS ---
+
     
     def on_recognizer_select(self, event):
         rec_model = self.recognizer_cb.get()
@@ -499,7 +496,7 @@ class FaceApp:
         win.destroy()
         self.status_bar.configure(text="Status: Video processing cancelled.")
 
-    # --- WEBCAM STREAMING (ASYNC THREAD + QUEUE) ---
+
     
     def toggle_webcam(self, force_stop=False):
         if self.webcam_active or force_stop:
@@ -628,7 +625,7 @@ class FaceApp:
         # Loop every 15ms
         self.root.after(15, self.poll_frame_queue)
 
-    # --- CANVAS RENDERING (WITH ASPECT RATIO RETENTION) ---
+
     
     def on_canvas_resize(self, event):
         self.canvas.delete("all")
@@ -666,8 +663,6 @@ class FaceApp:
         self.canvas.delete("all")
         self.canvas.create_image(x_offset, y_offset, image=self.photo, anchor='nw')
 
-    # --- DATABASE & REGISTRATION MANAGEMENT ---
-    
     def populate_db_list(self):
         self.db_listbox.delete(0, tk.END)
         if self.pipeline and self.pipeline.database:
